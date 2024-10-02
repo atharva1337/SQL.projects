@@ -1,0 +1,282 @@
+
+postgres=# create table department(dno int primary key,dname varchar(30), dlocation varchar(30));
+CREATE TABLE
+
+postgres=# create table employee(eno int primary key,ename varchar(30),designation varchar(20),salary numeric(10,2) check(salary>5000), dno int references department(dno));
+CREATE TABLE
+postgres=# \d department;
+                     Table "public.department"
+  Column   |         Type          | Collation | Nullable | Default
+-----------+-----------------------+-----------+----------+---------
+ dno       | integer               |           | not null |
+ dname     | character varying(30) |           |          |
+ dlocation | character varying(30) |           |          |
+Indexes:
+    "department_pkey" PRIMARY KEY, btree (dno)
+Referenced by:
+    TABLE "employee" CONSTRAINT "employee_dno_fkey" FOREIGN KEY (dno) REFERENCES department(dno)
+
+
+postgres=# \d employee;
+                       Table "public.employee"
+   Column    |         Type          | Collation | Nullable | Default
+-------------+-----------------------+-----------+----------+---------
+ eno         | integer               |           | not null |
+ ename       | character varying(30) |           |          |
+ designation | character varying(20) |           |          |
+ salary      | numeric(10,2)         |           |          |
+ dno         | integer               |           |          |
+Indexes:
+    "employee_pkey" PRIMARY KEY, btree (eno)
+Check constraints:
+    "employee_salary_check" CHECK (salary > 5000::numeric)
+Foreign-key constraints:
+    "employee_dno_fkey" FOREIGN KEY (dno) REFERENCES department(dno)
+
+
+postgres=# insert into department values(10,'Operations','Pune');
+INSERT 0 1
+postgres=# insert into department values(20,'HR','Bangalore');
+INSERT 0 1
+postgres=# insert into department values(30,'Project','Culcutta');
+INSERT 0 1
+postgres=# insert into department values(40,'SOA','Mumbai');
+INSERT 0 1
+postgres=# insert into department values(50,'Tech','Mumbai');
+INSERT 0 1
+postgres=# select * from department;
+ dno |   dname    | dlocation
+-----+------------+-----------
+  10 | Operations | Pune
+  20 | HR         | Bangalore
+  30 | Project    | Culcutta
+  40 | SOA        | Mumbai
+  50 | Tech       | Mumbai
+(5 rows)
+
+
+postgres=# insert into employee values(1,'akhila','manager',84000,10);
+INSERT 0 1
+postgres=# insert into employee values(2,'anil','SOA',104000,20);
+INSERT 0 1
+postgres=# insert into employee values(3,'anita','Consultant',89000,30);
+INSERT 0 1
+postgres=# insert into employee values(4,'sangam','Assistant manager',69000,40);
+INSERT 0 1
+postgres=# insert into employee values(5,'savita','manager',169000,50);
+INSERT 0 1
+postgres=# insert into employee values(6,'HariKrishna','IT Engineer',139000,50);
+INSERT 0 1
+postgres=# insert into employee values(7,'Abhishek','manager',79000,20);
+INSERT 0 1
+postgres=# select * from employee;
+ eno |    ename    |    designation    |  salary   | dno
+-----+-------------+-------------------+-----------+-----
+   1 | akhila      | manager           |  84000.00 |  10
+   2 | anil        | SOA               | 104000.00 |  20
+   3 | anita       | Consultant        |  89000.00 |  30
+   4 | sangam      | Assistant manager |  69000.00 |  40
+   5 | savita      | manager           | 169000.00 |  50
+   6 | HariKrishna | IT Engineer       | 139000.00 |  50
+   7 | Abhishek    | manager           |  79000.00 |  20
+(7 rows)
+
+Queries:
+1. Give a 5% raise in salary for all the employees.
+
+postgres=# update employee set salary=salary+(salary*0.05);
+UPDATE 7
+postgres=# select * from employee;
+ eno |    ename    |    designation    |  salary   | dno
+-----+-------------+-------------------+-----------+-----
+   1 | akhila      | manager           |  88200.00 |  10
+   2 | anil        | SOA               | 109200.00 |  20
+   3 | anita       | Consultant        |  93450.00 |  30
+   4 | sangam      | Assistant manager |  72450.00 |  40
+   5 | savita      | manager           | 177450.00 |  50
+   6 | HariKrishna | IT Engineer       | 145950.00 |  50
+   7 | Abhishek    | manager           |  82950.00 |  20
+(7 rows)
+
+Display average salary of an employee.
+
+postgres=# select avg(salary) from employee;
+         avg
+---------------------
+ 109950.000000000000
+(1 row)
+
+3: List the details of all the depatments located at _________ City.
+
+postgres=# select * from department where dlocation='Mumbai';
+ dno | dname | dlocation
+-----+-------+-----------
+  40 | SOA   | Mumbai
+  50 | Tech  | Mumbai
+(2 rows)
+
+4: List the employee details whose name ends with ____.
+
+postgres=# select * from employee where ename like '%a';
+ eno |    ename    | designation |  salary   | dno
+-----+-------------+-------------+-----------+-----
+   1 | akhila      | manager     |  88200.00 |  10
+   3 | anita       | Consultant  |  93450.00 |  30
+   5 | savita      | manager     | 177450.00 |  50
+   6 | HariKrishna | IT Engineer | 145950.00 |  50
+(4 rows)
+
+6: Display the Location of HR Department.
+
+postgres=# select dlocation from department where dname='HR';
+ dlocation
+-----------
+ Bangalore
+(1 row)
+
+7: Change the Designation of employee _________ to Manager.
+
+postgres=# select * from employee;
+ eno |    ename    |    designation    |  salary   | dno
+-----+-------------+-------------------+-----------+-----
+   1 | akhila      | manager           |  88200.00 |  10
+   2 | anil        | SOA               | 109200.00 |  20
+   3 | anita       | Consultant        |  93450.00 |  30
+   4 | sangam      | Assistant manager |  72450.00 |  40
+   5 | savita      | manager           | 177450.00 |  50
+   6 | HariKrishna | IT Engineer       | 145950.00 |  50
+   7 | Abhishek    | manager           |  82950.00 |  20
+(7 rows)
+
+postgres=# update employee set designation='manager' where ename='sangam';
+UPDATE 1
+postgres=# select * from employee;
+ eno |    ename    | designation |  salary   | dno
+-----+-------------+-------------+-----------+-----
+   1 | akhila      | manager     |  88200.00 |  10
+   2 | anil        | SOA         | 109200.00 |  20
+   3 | anita       | Consultant  |  93450.00 |  30
+   5 | savita      | manager     | 177450.00 |  50
+   6 | HariKrishna | IT Engineer | 145950.00 |  50
+   7 | Abhishek    | manager     |  82950.00 |  20
+   4 | sangam      | manager     |  72450.00 |  40
+(7 rows)
+
+8: Dispay minimum salary of an employee.
+
+postgres=# select min(salary) from employee;
+   min
+----------
+ 72450.00
+(1 row)
+
+postgres=# select ename from employee where salary=(select min(salary) from employee);
+ ename
+--------
+ sangam
+(1 row)
+
+
+postgres=# select ename,salary from employee where salary=(select min(salary) from employee);
+ ename  |  salary
+--------+----------
+ sangam | 72450.00
+(1 row)
+
+9: Display details of employees whose name starts with ____.
+
+postgres=# select * from employee where ename like 's%';
+ eno | ename  | designation |  salary   | dno
+-----+--------+-------------+-----------+-----
+   5 | savita | manager     | 177450.00 |  50
+   4 | sangam | manager     |  72450.00 |  40
+(2 rows)
+
+10. List the department wise count of employees.
+
+postgres=# select * from employee;
+ eno |    ename    | designation |  salary   | dno
+-----+-------------+-------------+-----------+-----
+   1 | akhila      | manager     |  88200.00 |  10
+   2 | anil        | SOA         | 109200.00 |  20
+   3 | anita       | Consultant  |  93450.00 |  30
+   5 | savita      | manager     | 177450.00 |  50
+   6 | HariKrishna | IT Engineer | 145950.00 |  50
+   7 | Abhishek    | manager     |  82950.00 |  20
+   4 | sangam      | manager     |  72450.00 |  40
+(7 rows)
+
+
+postgres=# select dno,count(dno) from employee group by dno;
+ dno | count
+-----+-------
+  40 |     1
+  30 |     1
+  10 |     1
+  50 |     2
+  20 |     2
+(5 rows)
+
+Nested Queries:
+list the details of employees who do not work in any of the departments located at Culcutta.
+
+postgres=# select * from department;
+ dno |   dname    | dlocation
+-----+------------+-----------
+  10 | Operations | Pune
+  20 | HR         | Bangalore
+  30 | Project    | Culcutta
+  40 | SOA        | Mumbai
+  50 | Tech       | Mumbai
+(5 rows)
+
+
+postgres=# select * from employee,department where department.dno=employee.dno and dlocation not in ('Culcutta');
+ eno |    ename    | designation |  salary   | dno | dno |   dname    | dlocation
+-----+-------------+-------------+-----------+-----+-----+------------+-----------
+   1 | akhila      | manager     |  88200.00 |  10 |  10 | Operations | Pune
+   2 | anil        | SOA         | 109200.00 |  20 |  20 | HR         | Bangalore
+   5 | savita      | manager     | 177450.00 |  50 |  50 | Tech       | Mumbai
+   6 | HariKrishna | IT Engineer | 145950.00 |  50 |  50 | Tech       | Mumbai
+   7 | Abhishek    | manager     |  82950.00 |  20 |  20 | HR         | Bangalore
+   4 | sangam      | manager     |  72450.00 |  40 |  40 | SOA        | Mumbai
+(6 rows)
+
+/*postgres=# select ename,salary from employee,department where department.dno=employee.dno and employee.dno not in(select dno from department where dname='HR');
+    ename    |  salary
+-------------+-----------
+ akhila      |  88200.00
+ anita       |  93450.00
+ savita      | 177450.00
+ HariKrishna | 145950.00
+ sangam      |  72450.00
+(5 rows)
+*/
+
+List the names of employees whose salary is greater than the employees working in HR department.
+
+postgres=# select ename,salary from employee,department where department.dno=employee.dno and employee.salary>(select max(salary) from employee,department where department.dno=employee.dno and department.dname='HR');
+    ename    |  salary
+-------------+-----------
+ savita      | 177450.00
+ HariKrishna | 145950.00
+(2 rows)
+
+
+postgres=# select ename,salary,designation,dname from employee,department where department.dno=employee.dno and employee.salary>(select max(salary) from employee,department where department.dno=employee.dno and department.dname='HR');
+    ename    |  salary   | designation | dname
+-------------+-----------+-------------+-------
+ savita      | 177450.00 | manager     | Tech
+ HariKrishna | 145950.00 | IT Engineer | Tech
+List department name wise total salry
+
+
+select dname,sum(salary) as Total_Salary_Paid from employee,department where department.dno=employee.dno group by dname;
+   dname    | total_salary_paid
+------------+-------------------
+ Operations |          88200.00
+ Tech       |         323400.00
+ Project    |          93450.00
+ SOA        |          72450.00
+ HR         |         192150.00
+(5 rows)

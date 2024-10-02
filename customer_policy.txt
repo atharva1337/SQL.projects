@@ -1,0 +1,164 @@
+postgres=# create table customer(cno int primary key,cname varchar(20),city varchar(20),agentname varchar(20));
+CREATE TABLE
+postgres=# create table policy(pno int primary key,pname varchar(20),primiumamount numeric(10,2),
+policytype varchar(15) check(policytype in('Yearly','Half Yearly','Monthly')),cno int references customer(cno) on delete cascade on update set null);
+CREATE TABLE
+postgres=# \d customer;
+                      Table "public.customer"
+  Column   |         Type          | Collation | Nullable | Default
+-----------+-----------------------+-----------+----------+---------
+ cno       | integer               |           | not null |
+ cname     | character varying(20) |           |          |
+ city      | character varying(20) |           |          |
+ agentname | character varying(20) |           |          |
+Indexes:
+    "customer_pkey" PRIMARY KEY, btree (cno)
+Referenced by:
+    TABLE "policy" CONSTRAINT "policy_cno_fkey" FOREIGN KEY (cno) REFERENCES customer(cno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# \d policy;
+                         Table "public.policy"
+    Column     |         Type          | Collation | Nullable | Default
+---------------+-----------------------+-----------+----------+---------
+ pno           | integer               |           | not null |
+ pname         | character varying(20) |           |          |
+ primiumamount | numeric(10,2)         |           |          |
+ policytype    | character varying(15) |           |          |
+ cno           | integer               |           |          |
+Indexes:
+    "policy_pkey" PRIMARY KEY, btree (pno)
+Check constraints:
+    "policy_policytype_check" CHECK (policytype::text = ANY (ARRAY['Yearly'::character varying, 'Half Yearly'::character varying, 'Monthly'::character varying]::text[]))
+Foreign-key constraints:
+    "policy_cno_fkey" FOREIGN KEY (cno) REFERENCES customer(cno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# insert into customer values(121,'Akhila','Pune','Rahul Kalbhor');
+INSERT 0 1
+postgres=# insert into customer values(131,'Anil','Mumbai','Prachi Dhandekar');
+INSERT 0 1
+postgres=# insert into customer values(141,'Rugved','Nashik','Arun Kumar');
+INSERT 0 1
+postgres=# insert into policy values(19000123,'Jeevan Anand',10000,'Yearly',131);
+INSERT 0 1
+postgres=# insert into policy values(19444123,'Jeevan Sukhi',1000,'Monthly',131);
+INSERT 0 1
+postgres=# insert into policy values(77000234,'Jeevan Anand',23000,'Yearly',121);
+INSERT 0 1
+postgres=# insert into policy values(3456789,'Jeevan Suraksha',25000,'Yearly',121);
+INSERT 0 1
+
+
+postgres=# insert into policy values(1111118,'Jeevan Bhima',15000,'Half Yearly',141);
+INSERT 0 1
+postgres=# insert into policy values(1123456,'Jeevan Suraksha',14000,'Half Yearly',141);
+INSERT 0 1
+postgres=# select * from customer;
+ cno | cname  |  city  |    agentname
+-----+--------+--------+------------------
+ 121 | Akhila | Pune   | Rahul Kalbhor
+ 131 | Anil   | Mumbai | Prachi Dhandekar
+ 141 | Rugved | Nashik | Arun Kumar
+(3 rows)
+
+
+postgres=# select * from policy;
+   pno    |      pname      | primiumamount | policytype  | cno
+----------+-----------------+---------------+-------------+-----
+ 19000123 | Jeevan Anand    |      10000.00 | Yearly      | 131
+ 19444123 | Jeevan Sukhi    |       1000.00 | Monthly     | 131
+ 77000234 | Jeevan Anand    |      23000.00 | Yearly      | 121
+  3456789 | Jeevan Suraksha |      25000.00 | Yearly      | 121
+  1111118 | Jeevan Bhima    |      15000.00 | Half Yearly | 141
+  1123456 | Jeevan Suraksha |      14000.00 | Half Yearly | 141
+(6 rows)
+
+
+
+postgres=# select * from customer where city='Pune';
+ cno | cname  | city |   agentname
+-----+--------+------+---------------
+ 121 | Akhila | Pune | Rahul Kalbhor
+(1 row)
+
+
+postgres=# select avg(primiumamount) as Average_PrimiumAmount from policy;
+ average_primiumamount
+-----------------------
+    14666.666666666667
+(1 row)
+
+
+postgres=# select * from policy;
+   pno    |      pname      | primiumamount | policytype  | cno
+----------+-----------------+---------------+-------------+-----
+ 19000123 | Jeevan Anand    |      10000.00 | Yearly      | 131
+ 19444123 | Jeevan Sukhi    |       1000.00 | Monthly     | 131
+ 77000234 | Jeevan Anand    |      23000.00 | Yearly      | 121
+  3456789 | Jeevan Suraksha |      25000.00 | Yearly      | 121
+  1111118 | Jeevan Bhima    |      15000.00 | Half Yearly | 141
+  1123456 | Jeevan Suraksha |      14000.00 | Half Yearly | 141
+(6 rows)
+
+
+postgres=# select count(*) from policy where pname='Jeevan Anand';
+ count
+-------
+     2
+(1 row)
+
+
+postgres=# update policy set primiumamount=primiumamount+(primiumamount*0.1) where policytype='Monthly';
+UPDATE 1
+postgres=# select * from policy;
+   pno    |      pname      | primiumamount | policytype  | cno
+----------+-----------------+---------------+-------------+-----
+ 19000123 | Jeevan Anand    |      10000.00 | Yearly      | 131
+ 77000234 | Jeevan Anand    |      23000.00 | Yearly      | 121
+  3456789 | Jeevan Suraksha |      25000.00 | Yearly      | 121
+  1111118 | Jeevan Bhima    |      15000.00 | Half Yearly | 141
+  1123456 | Jeevan Suraksha |      14000.00 | Half Yearly | 141
+ 19444123 | Jeevan Sukhi    |       1100.00 | Monthly     | 131
+(6 rows)
+
+postgres=# select policytype,count(*) from policy group by policytype;
+ policytype  | count
+-------------+-------
+ Yearly      |     3
+ Monthly     |     1
+ Half Yearly |     2
+(3 rows)
+
+
+postgres=# select policytype,max(primiumamount) from policy group by policytype;
+ policytype  |   max
+-------------+----------
+ Yearly      | 25000.00
+ Monthly     |  1100.00
+ Half Yearly | 15000.00
+(3 rows)
+
+
+postgres=# insert into policy values(1879076,'Jeevan Bhima',1234,'Monthly',131);
+INSERT 0 1
+
+postgres=# select customer.cname,count(*) from customer,policy where customer.cno=policy.cno group by cname;
+ cname  | count
+--------+-------
+ Anil   |     3
+ Rugved |     2
+ Akhila |     2
+(3 rows)
+postgres=# select customer.cname,count(*) from customer,policy where customer.cno=policy.cno group by cname having count(*)>=all(select count(*) from customer,policy where customer.cno=policy.cno group by cname);
+ cname | count
+-------+-------
+ Anil  |     3
+(1 row)
+
+postgres=# select customer.cname,count(*) from customer,policy where customer.cno=policy.cno group by cname 
+having count(*)>=all(select count(*) from customer,policy where customer.cno=policy.cno group by cname);
+ cname | count
+-------+-------
+ Anil  |     3
+(1 row)

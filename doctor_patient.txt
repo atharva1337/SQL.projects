@@ -1,0 +1,181 @@
+
+postgres=# create table doctor(dno int primary key,dname varchar(20),city varchar(20));
+CREATE TABLE
+postgres=# create table patient(pno int primary key,pname varchar(20),city varchar(20),disease varchar(20));
+CREATE TABLE
+postgres=# create table doctor_patient(dno int references doctor(dno) on delete cascade on update set null,pno int references patient(pno) on delete cascade on update set null, fees numeric(8,2));
+CREATE TABLE
+postgres=# \d doctor;
+                      Table "public.doctor"
+ Column |         Type          | Collation | Nullable | Default
+--------+-----------------------+-----------+----------+---------
+ dno    | integer               |           | not null |
+ dname  | character varying(20) |           |          |
+ city   | character varying(20) |           |          |
+Indexes:
+    "doctor_pkey" PRIMARY KEY, btree (dno)
+Referenced by:
+    TABLE "doctor_patient" CONSTRAINT "doctor_patient_dno_fkey" FOREIGN KEY (dno) REFERENCES doctor(dno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# \d patient;
+                      Table "public.patient"
+ Column  |         Type          | Collation | Nullable | Default
+---------+-----------------------+-----------+----------+---------
+ pno     | integer               |           | not null |
+ pname   | character varying(20) |           |          |
+ city    | character varying(20) |           |          |
+ disease | character varying(20) |           |          |
+Indexes:
+    "patient_pkey" PRIMARY KEY, btree (pno)
+Referenced by:
+    TABLE "doctor_patient" CONSTRAINT "doctor_patient_pno_fkey" FOREIGN KEY (pno) REFERENCES patient(pno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# \d doctor_patient;
+             Table "public.doctor_patient"
+ Column |     Type     | Collation | Nullable | Default
+--------+--------------+-----------+----------+---------
+ dno    | integer      |           |          |
+ pno    | integer      |           |          |
+ fees   | numeric(8,2) |           |          |
+Foreign-key constraints:
+    "doctor_patient_dno_fkey" FOREIGN KEY (dno) REFERENCES doctor(dno) ON UPDATE SET NULL ON DELETE CASCADE
+    "doctor_patient_pno_fkey" FOREIGN KEY (pno) REFERENCES patient(pno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# insert into doctor values(11,'Dr.Patil','Mumbai');
+INSERT 0 1
+postgres=# insert into doctor values(22,'Dr.Kumar','Pune');
+INSERT 0 1
+postgres=# insert into doctor values(33,'Dr.Mayya','Mangalore');
+INSERT 0 1
+postgres=# insert into patient values(1,'Akhila','Mangalore','Cold & Fever');
+INSERT 0 1
+postgres=# insert into patient values(2,'Raghu','Mangalore','Infection');
+INSERT 0 1
+postgres=# insert into patient values(3,'Parisha','Pune','Cancer');
+INSERT 0 1
+postgres=# insert into patient values(4,'Sumathi','Mumbai','Cancer');
+INSERT 0 1
+postgres=# insert into patient values(5,'Varad','Nashik','Cancer');
+INSERT 0 1
+postgres=# insert into patient values(6,'Venu','Nashik','Astama');
+INSERT 0 1
+postgres=# insert into patient values(7,'Arpit','Mumbai','Astama');
+INSERT 0 1
+
+postgres=# select * from doctor;
+ dno |  dname   |   city
+-----+----------+-----------
+  11 | Dr.Patil | Mumbai
+  22 | Dr.Kumar | Pune
+  33 | Dr.Mayya | Mangalore
+(3 rows)
+
+postgres=# select * from patient;
+ pno |  pname  |   city    |   disease
+-----+---------+-----------+--------------
+   1 | Akhila  | Mangalore | Cold & Fever
+   2 | Raghu   | Mangalore | Infection
+   3 | Parisha | Pune      | Cancer
+   4 | Sumathi | Mumbai    | Cancer
+   5 | Varad   | Nashik    | Cancer
+   6 | Venu    | Nashik    | Astama
+   7 | Arpit   | Mumbai    | Astama
+(7 rows)
+
+
+postgres=# insert into doctor_patient values(33,1,250);
+INSERT 0 1
+postgres=# insert into doctor_patient values(33,2,200);
+INSERT 0 1
+postgres=# insert into doctor_patient values(11,3,1200);
+INSERT 0 1
+postgres=# insert into doctor_patient values(11,4,2500);
+INSERT 0 1
+postgres=# insert into doctor_patient values(11,5,7500);
+INSERT 0 1
+postgres=# insert into doctor_patient values(22,6,500);
+INSERT 0 1
+postgres=# insert into doctor_patient values(22,7,1500);
+INSERT 0 1
+postgres=# select * from doctor_patient;
+ dno | pno |  fees
+-----+-----+---------
+  33 |   1 |  250.00
+  33 |   2 |  200.00
+  11 |   3 | 1200.00
+  11 |   4 | 2500.00
+  11 |   5 | 7500.00
+  22 |   6 |  500.00
+  22 |   7 | 1500.00
+(7 rows)
+
+
+postgres=# select * from doctor where city='Pune';
+ dno |  dname   | city
+-----+----------+------
+  22 | Dr.Kumar | Pune
+(1 row)
+
+postgres=# select count(*) from patient;
+ count
+-------
+     7
+(1 row)
+
+
+postgres=# select pname from patient where disease='Cancer';
+  pname
+---------
+ Parisha
+ Sumathi
+ Varad
+(3 rows)
+
+
+postgres=# update doctor set city='Pune' where dname='Dr.Patil';
+UPDATE 1
+
+postgres=# select * from doctor;
+ dno |  dname   |   city
+-----+----------+-----------
+  22 | Dr.Kumar | Pune
+  33 | Dr.Mayya | Mangalore
+  11 | Dr.Patil | Pune
+(3 rows)
+
+
+postgres=# select pname from patient where pname like 'A%';
+ pname
+--------
+ Akhila
+ Arpit
+(2 rows)
+
+postgres=# select count(*) from doctor,patient,doctor_patient where doctor.dno=doctor_patient.dno and 
+patient.pno=doctor_patient.pno and dname='Dr.Kumar' and fees=500 and disease='Astama';
+ count
+-------
+     1
+(1 row)
+
+
+postgres=# select dname,count(*) from doctor,patient,doctor_patient where doctor.dno=doctor_patient.dno and 
+patient.pno=doctor_patient.pno group by dname;
+  dname   | count
+----------+-------
+ Dr.Patil |     3
+ Dr.Mayya |     2
+ Dr.Kumar |     2
+(3 rows)
+
+
+postgres=# select dname,count(*) from doctor,patient,doctor_patient where doctor.dno=doctor_patient.dno and 
+patient.pno=doctor_patient.pno group by dname having count(*)
+>=all(select count(*) from doctor,patient,doctor_patient where doctor.dno=doctor_patient.dno and patient.pno=doctor_patient.pno group by dname);
+  dname   | count
+----------+-------
+ Dr.Patil |     3
+(1 row)

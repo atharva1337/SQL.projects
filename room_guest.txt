@@ -1,0 +1,130 @@
+create table room(roomno int primary key,roomname varchar(30),roomtype varchar(6) check(roomtype in('AC','NonAC')),charges numeric(7,2));
+CREATE TABLE
+postgres=# create table guest(guestno int primary key,gname varchar(30),city varchar(20),roomno int references room(roomno) unique);
+CREATE TABLE
+postgres=# \d room;
+                        Table "public.room"
+  Column  |         Type          | Collation | Nullable | Default
+----------+-----------------------+-----------+----------+---------
+ roomno   | integer               |           | not null |
+ roomname | character varying(30) |           |          |
+ roomtype | character varying(6)  |           |          |
+ charges  | numeric(7,2)          |           |          |
+Indexes:
+    "room_pkey" PRIMARY KEY, btree (roomno)
+Check constraints:
+    "room_roomtype_check" CHECK (roomtype::text = ANY (ARRAY['AC'::character varying, 'NonAC'::character varying]::text[]))
+Referenced by:
+    TABLE "guest" CONSTRAINT "guest_roomno_fkey" FOREIGN KEY (roomno) REFERENCES room(roomno)
+
+
+postgres=# \d guest;
+                       Table "public.guest"
+ Column  |         Type          | Collation | Nullable | Default
+---------+-----------------------+-----------+----------+---------
+ guestno | integer               |           | not null |
+ gname   | character varying(30) |           |          |
+ city    | character varying(20) |           |          |
+ roomno  | integer               |           |          |
+Indexes:
+    "guest_pkey" PRIMARY KEY, btree (guestno)
+    "guest_roomno_key" UNIQUE CONSTRAINT, btree (roomno)
+Foreign-key constraints:
+    "guest_roomno_fkey" FOREIGN KEY (roomno) REFERENCES room(roomno)
+
+
+postgres=# insert into room values(101,'Laxury','AC',5600);
+INSERT 0 1
+postgres=# insert into room values(201,'Laxury','AC',8700);
+INSERT 0 1
+postgres=# insert into room values(102,'Semi','AC',4700);
+INSERT 0 1
+postgres=# insert into room values(202,'Semi','NonAC',3700);
+INSERT 0 1
+postgres=# insert into room values(301,'Semi Large','NonAC',13700);
+INSERT 0 1
+postgres=# insert into room values(302,'Large','NonAC',6700);
+INSERT 0 1
+postgres=# select * from room;
+ roomno |  roomname  | roomtype | charges
+--------+------------+----------+----------
+    101 | Laxury     | AC       |  5600.00
+    201 | Laxury     | AC       |  8700.00
+    102 | Semi       | AC       |  4700.00
+    202 | Semi       | NonAC    |  3700.00
+    301 | Semi Large | NonAC    | 13700.00
+    302 | Large      | NonAC    |  6700.00
+(6 rows)
+
+
+postgres=# insert into guest values(1,'Arun','Pune',101);
+INSERT 0 1
+postgres=# insert into guest values(2,'Aditya','Pune',201);
+INSERT 0 1
+postgres=# insert into guest values(3,'Saket','Nasik',102);
+INSERT 0 1
+postgres=# insert into guest values(4,'Sanskar','Mumbai',301);
+INSERT 0 1
+postgres=# insert into guest values(5,'Sandhya','Kondwa',202);
+INSERT 0 1
+postgres=# insert into guest values(6,'Sandhya','Kolhapur',302);
+INSERT 0 1
+postgres=# select * from guest;
+ guestno |  gname  |   city   | roomno
+---------+---------+----------+--------
+       1 | Arun    | Pune     |    101
+       2 | Aditya  | Pune     |    201
+       3 | Saket   | Nasik    |    102
+       4 | Sanskar | Mumbai   |    301
+       5 | Sandhya | Kondwa   |    202
+       6 | Sandhya | Kolhapur |    302
+(6 rows)
+
+1. List the details of the rooms having charges between 5000 and 10000.
+
+postgres=# select * from room where charges between 5000 and 10000;
+ roomno | roomname | roomtype | charges
+--------+----------+----------+---------
+    101 | Laxury   | AC       | 5600.00
+    201 | Laxury   | AC       | 8700.00
+    302 | Large    | NonAC    | 6700.00
+(3 rows)
+
+2. List names of guests whoes name starts from S.
+
+select * from guest where gname like 'S%';
+ guestno |  gname  |   city   | roomno
+---------+---------+----------+--------
+       3 | Saket   | Nasik    |    102
+       4 | Sanskar | Mumbai   |    301
+       5 | Sandhya | Kondwa   |    202
+       6 | Sandhya | Kolhapur |    302
+(4 rows)
+4. List the minumum charges of the room.
+
+select min(charges) from room;
+   min
+---------
+ 3700.00
+(1 row)
+
+5. Increase the charges of all AC rooms by 15%.
+
+update room set charges=charges+(charges*0.15) where roomtype='AC';
+UPDATE 3
+
+6. List all the names of the NonAc rooms whose charges are more than 10000.
+
+select roomname from room where roomtype='NonAC' and charges>10000;
+  roomname
+------------
+ Semi Large
+(1 row)
+
+7. List the names of guest to whom the room with highest charges is allocated.
+
+postgres=# select gname from guest,room where room.roomno=guest.roomno and room.charges=(select max(charges) from room);
+  gname
+---------
+ Sanskar
+(1 row)

@@ -1,0 +1,163 @@
+postgres=# create table client(cno int primary key,cname varchar(20),address varchar(20));
+CREATE TABLE
+
+postgres=# create table order10(ono int primary key,odate date,amount numeric(10,2),cno int references client(cno) on delete cascade on update set null);
+CREATE TABLE
+
+postgres=# insert into client values(111,'Akhila','Pune');
+INSERT 0 1
+postgres=# insert into client values(112,'Anil','Pune');
+INSERT 0 1
+postgres=# insert into client values(113,'Aditi','Mumbai');
+INSERT 0 1
+postgres=# insert into client values(114,'Arun','Hydrabad');
+INSERT 0 1
+postgres=# insert into client values(115,'Malini','Mumbai');
+INSERT 0 1
+postgres=# insert into order10 values(1,'13/04/2019',34908.67,111);
+INSERT 0 1
+postgres=# insert into order10 values(2,'23/10/2019',104908.67,111);
+INSERT 0 1
+postgres=# insert into order10 values(3,'13/10/2019',4908.67,112);
+INSERT 0 1
+postgres=# insert into order10 values(4,'3/07/2019',14908.67,112);
+INSERT 0 1
+postgres=# insert into order10 values(5,'6/07/2019',45908.67,113);
+INSERT 0 1
+postgres=# insert into order10 values(6,'6/4/2018',25000,114);
+INSERT 0 1
+postgres=# insert into order10 values(7,'6/4/2018',125000,114);
+INSERT 0 1
+postgres=# insert into order10 values(8,'26/7/2018',12500,115);
+INSERT 0 1
+postgres=# select * from client;
+ cno | cname  | address
+-----+--------+----------
+ 111 | Akhila | Pune
+ 112 | Anil   | Pune
+ 113 | Aditi  | Mumbai
+ 114 | Arun   | Hydrabad
+ 115 | Malini | Mumbai
+(5 rows)
+
+
+postgres=# select * from order10;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   1 | 2019-04-13 |  34908.67 | 111
+   2 | 2019-10-23 | 104908.67 | 111
+   3 | 2019-10-13 |   4908.67 | 112
+   4 | 2019-07-03 |  14908.67 | 112
+   5 | 2019-07-06 |  45908.67 | 113
+   6 | 2018-04-06 |  25000.00 | 114
+   7 | 2018-04-06 | 125000.00 | 114
+   8 | 2018-07-26 |  12500.00 | 115
+(8 rows)
+
+Change order date of client_no ’04’ to ‘12/4/19’.
+
+postgres=# update order10 set odate='12/4/2019' where cno=114;
+UPDATE 2
+postgres=# select * from order10;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   1 | 2019-04-13 |  34908.67 | 111
+   2 | 2019-10-23 | 104908.67 | 111
+   3 | 2019-10-13 |   4908.67 | 112
+   4 | 2019-07-03 |  14908.67 | 112
+   5 | 2019-07-06 |  45908.67 | 113
+   8 | 2018-07-26 |  12500.00 | 115
+   6 | 2019-04-12 |  25000.00 | 114
+   7 | 2019-04-12 | 125000.00 | 114
+(8 rows)
+
+Display all orders given in the month of October.
+
+postgres=# select * from order10 where extract(month from odate)=10;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   2 | 2019-10-23 | 104908.67 | 111
+   3 | 2019-10-13 |   4908.67 | 112
+(2 rows)
+
+Display all orders in descending order of amount.
+
+postgres=# select * from order10 order by amount desc;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   7 | 2019-04-12 | 125000.00 | 114
+   2 | 2019-10-23 | 104908.67 | 111
+   5 | 2019-07-06 |  45908.67 | 113
+   1 | 2019-04-13 |  34908.67 | 111
+   6 | 2019-04-12 |  25000.00 | 114
+   4 | 2019-07-03 |  14908.67 | 112
+   8 | 2018-07-26 |  12500.00 | 115
+   3 | 2019-10-13 |   4908.67 | 112
+(8 rows)
+
+Delete all the clients of Mumbai.
+
+postgres=# delete from client where address='Mumbai';
+DELETE 2
+postgres=# select * from client;
+ cno | cname  | address
+-----+--------+----------
+ 111 | Akhila | Pune
+ 112 | Anil   | Pune
+ 114 | Arun   | Hydrabad
+(3 rows)
+
+
+postgres=# select * from order10;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   1 | 2019-04-13 |  34908.67 | 111
+   2 | 2019-10-23 | 104908.67 | 111
+   3 | 2019-10-13 |   4908.67 | 112
+   4 | 2019-07-03 |  14908.67 | 112
+   6 | 2019-04-12 |  25000.00 | 114
+   7 | 2019-04-12 | 125000.00 | 114
+(6 rows)
+
+Count the number of orders having amount > ____.
+
+postgres=# select count(ono) from order10 where amount>25000;
+ count
+-------
+     3
+(1 row)
+
+
+postgres=# insert into order10 values(8,'23/09/2019',12345,114);
+INSERT 0 1
+
+postgres=# select * from order10;
+ ono |   odate    |  amount   | cno
+-----+------------+-----------+-----
+   1 | 2019-04-13 |  34908.67 | 111
+   2 | 2019-10-23 | 104908.67 | 111
+   3 | 2019-10-13 |   4908.67 | 112
+   4 | 2019-07-03 |  14908.67 | 112
+   6 | 2019-04-12 |  25000.00 | 114
+   7 | 2019-04-12 | 125000.00 | 114
+   8 | 2019-09-23 |  12345.00 | 114
+(7 rows)
+
+Nested Queries
+Write a query to Display the client name who has given maximum number of orders.
+
+postgres=# select cname, count(ono) from client,order10 where client.cno=order10.cno group by client.cno having count(ono)>=all(select count(ono) from order10 group by cno);
+ cname | count
+-------+-------
+ Arun  |     3
+(1 row)
+
+Create a view to list names of clients having more than 2 sales orders.
+
+postgres=# create view view10 as select cname, count(ono) from client,order10 where client.cno=order10.cno group by client.cno having count(ono)>2;
+CREATE VIEW
+postgres=# select * from view10;
+ cname | count
+-------+-------
+ Arun  |     3
+(1 row)

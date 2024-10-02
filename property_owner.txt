@@ -1,0 +1,288 @@
+
+postgres=# create table owner(oname varchar(20) primary key,address varchar(30),phoneno numeric(10));
+CREATE TABLE
+postgres=# create table property(pno int primary key,area int,location varchar(20),city varchar(30),
+oname varchar(20) references owner(oname) on delete cascade on update set null);
+CREATE TABLE
+postgres=# \d owner;
+                       Table "public.owner"
+ Column  |         Type          | Collation | Nullable | Default
+---------+-----------------------+-----------+----------+---------
+ oname   | character varying(20) |           | not null |
+ address | character varying(30) |           |          |
+ phoneno | numeric(10,0)         |           |          |
+Indexes:
+    "owner_pkey" PRIMARY KEY, btree (oname)
+Referenced by:
+    TABLE "property" CONSTRAINT "property_oname_fkey" FOREIGN KEY (oname) REFERENCES owner(oname) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# \d property;
+                      Table "public.property"
+  Column  |         Type          | Collation | Nullable | Default
+----------+-----------------------+-----------+----------+---------
+ pno      | integer               |           | not null |
+ area     | integer               |           |          |
+ location | character varying(20) |           |          |
+ city     | character varying(30) |           |          |
+ oname    | character varying(20) |           |          |
+Indexes:
+    "property_pkey" PRIMARY KEY, btree (pno)
+Foreign-key constraints:
+    "property_oname_fkey" FOREIGN KEY (oname) REFERENCES owner(oname) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# insert into owner values('Mr.Singh','Mumbai',9823094855);
+INSERT 0 1
+postgres=# insert into owner values('Mr.Kumar','Pune',9823078855);
+INSERT 0 1
+postgres=# insert into owner values('Mr.Patil','Nasik',8823988878);
+INSERT 0 1
+postgres=# insert into owner values('Ms.Karthika','Mumbai',1234567890);
+INSERT 0 1
+
+postgres=# select * from owner;
+    oname    | address |  phoneno
+-------------+---------+------------
+ Mr.Singh    | Mumbai  | 9823094855
+ Mr.Kumar    | Pune    | 9823078855
+ Mr.Patil    | Nasik   | 8823988878
+ Ms.Karthika | Mumbai  | 1234567890
+(4 rows)
+
+
+postgres=# insert into property values(1,2345,'Anand Nagar','Pune','Mr.Kumar');
+INSERT 0 1
+postgres=# insert into property values(2,2500,'Kalyani Nagar','Pune','Mr.Kumar');
+INSERT 0 1
+postgres=# insert into property values(3,1500,'Suncity','Pune','Mr.Kumar');
+INSERT 0 1
+postgres=# insert into property values(4,1500,'ST','Mumbai','Mr.Singh');
+INSERT 0 1
+postgres=# insert into property values(5,550,'Dadar','Nashik','Mr.Singh');
+INSERT 0 1
+postgres=# insert into property values(6,4550,'Magarpatta','Pune','Mr.Singh');
+INSERT 0 1
+postgres=# insert into property values(7,2800,'Magarpatta','Pune','Mr.Patil');
+INSERT 0 1
+postgres=# insert into property values(8,1850,'Darma nagar','Nashik','Mr.Patil');
+INSERT 0 1
+postgres=# insert into property values(9,2345,'Wakad','Pune','Ms.Karthika');
+INSERT 0 1
+postgres=# insert into property values(10,986,'Bhavdan','Pune','Ms.Karthika');
+INSERT 0 1
+postgres=# insert into property values(11,886,'Kalyani','Mumbai','Ms.Karthika');
+INSERT 0 1
+
+postgres=# select * from property;
+ pno | area |   location    |  city  |    oname
+-----+------+---------------+--------+-------------
+   1 | 2345 | Anand Nagar   | Pune   | Mr.Kumar
+   2 | 2500 | Kalyani Nagar | Pune   | Mr.Kumar
+   3 | 1500 | Suncity       | Pune   | Mr.Kumar
+   4 | 1500 | ST            | Mumbai | Mr.Singh
+   5 |  550 | Dadar         | Nashik | Mr.Singh
+   6 | 4550 | Magarpatta    | Pune   | Mr.Singh
+   7 | 2800 | Magarpatta    | Pune   | Mr.Patil
+   8 | 1850 | Darma nagar   | Nashik | Mr.Patil
+   9 | 2345 | Wakad         | Pune   | Ms.Karthika
+  10 |  986 | Bhavdan       | Pune   | Ms.Karthika
+  11 |  886 | Kalyani       | Mumbai | Ms.Karthika
+(11 rows)
+
+
+postgres=# select * from property where city='Nashik';
+ pno | area |  location   |  city  |  oname
+-----+------+-------------+--------+----------
+   5 |  550 | Dadar       | Nashik | Mr.Singh
+   8 | 1850 | Darma nagar | Nashik | Mr.Patil
+(2 rows)
+
+
+
+postgres=# select distinct owner.oname from owner,property where owner.oname=property.oname and area>2000;
+    oname
+-------------
+ Ms.Karthika
+ Mr.Kumar
+ Mr.Singh
+ Mr.Patil
+(4 rows)
+
+
+postgres=# select count(*) as Total_Property from property where oname='Mr.Kumar';
+ total_property
+----------------
+              3
+(1 row)
+
+
+postgres=# select count(*) from property where area<980;
+ count
+-------
+     2
+(1 row)
+
+
+postgres=# select * from property;
+ pno | area |   location    |  city  |    oname
+-----+------+---------------+--------+-------------
+   1 | 2345 | Anand Nagar   | Pune   | Mr.Kumar
+   2 | 2500 | Kalyani Nagar | Pune   | Mr.Kumar
+   3 | 1500 | Suncity       | Pune   | Mr.Kumar
+   4 | 1500 | ST            | Mumbai | Mr.Singh
+   5 |  550 | Dadar         | Nashik | Mr.Singh
+   6 | 4550 | Magarpatta    | Pune   | Mr.Singh
+   7 | 2800 | Magarpatta    | Pune   | Mr.Patil
+   8 | 1850 | Darma nagar   | Nashik | Mr.Patil
+   9 | 2345 | Wakad         | Pune   | Ms.Karthika
+  10 |  986 | Bhavdan       | Pune   | Ms.Karthika
+  11 |  886 | Kalyani       | Mumbai | Ms.Karthika
+(11 rows)
+
+
+postgres=# delete from property where oname='Mr.Singh' and city='Pune';
+DELETE 1
+
+postgres=# select * from property;
+ pno | area |   location    |  city  |    oname
+-----+------+---------------+--------+-------------
+   1 | 2345 | Anand Nagar   | Pune   | Mr.Kumar
+   2 | 2500 | Kalyani Nagar | Pune   | Mr.Kumar
+   3 | 1500 | Suncity       | Pune   | Mr.Kumar
+   4 | 1500 | ST            | Mumbai | Mr.Singh
+   5 |  550 | Dadar         | Nashik | Mr.Singh
+   7 | 2800 | Magarpatta    | Pune   | Mr.Patil
+   8 | 1850 | Darma nagar   | Nashik | Mr.Patil
+   9 | 2345 | Wakad         | Pune   | Ms.Karthika
+  10 |  986 | Bhavdan       | Pune   | Ms.Karthika
+  11 |  886 | Kalyani       | Mumbai | Ms.Karthika
+(10 rows)
+
+
+postgres=# select * from property where city='Mumbai';
+ pno | area | location |  city  |    oname
+-----+------+----------+--------+-------------
+   4 | 1500 | ST       | Mumbai | Mr.Singh
+  11 |  886 | Kalyani  | Mumbai | Ms.Karthika
+(2 rows)
+
+
+postgres=# select count(*) from property where area>1400;
+ count
+-------
+     7
+(1 row)
+
+postgres=# select sum(price) from property where oname='Mr.Kumar';
+
+
+postgres=# select * from property;
+ pno | area |   location    |  city  |    oname
+-----+------+---------------+--------+-------------
+   1 | 2345 | Anand Nagar   | Pune   | Mr.Kumar
+   2 | 2500 | Kalyani Nagar | Pune   | Mr.Kumar
+   3 | 1500 | Suncity       | Pune   | Mr.Kumar
+   4 | 1500 | ST            | Mumbai | Mr.Singh
+   5 |  550 | Dadar         | Nashik | Mr.Singh
+   7 | 2800 | Magarpatta    | Pune   | Mr.Patil
+   8 | 1850 | Darma nagar   | Nashik | Mr.Patil
+   9 | 2345 | Wakad         | Pune   | Ms.Karthika
+  10 |  986 | Bhavdan       | Pune   | Ms.Karthika
+  11 |  886 | Kalyani       | Mumbai | Ms.Karthika
+(10 rows)
+
+
+postgres=# select * from property where oname='Ms.Karthika' and city='Mumbai';
+ pno | area | location |  city  |    oname
+-----+------+----------+--------+-------------
+  11 |  886 | Kalyani  | Mumbai | Ms.Karthika
+(1 row)
+
+
+postgres=# update owner set phoneno=9923323366 where oname='Mr.Patil';
+UPDATE 1
+postgres=# select * from owner;
+    oname    | address |  phoneno
+-------------+---------+------------
+ Mr.Singh    | Mumbai  | 9823094855
+ Mr.Kumar    | Pune    | 9823078855
+ Ms.Karthika | Mumbai  | 1234567890
+ Mr.Patil    | Nasik   | 9923323366
+(4 rows)
+
+
+postgres=# select distinct oname from property where city='Pune';
+    oname
+-------------
+ Mr.Kumar
+ Mr.Patil
+ Ms.Karthika
+(3 rows)
+
+
+postgres=# select oname from owner where oname like '%a';
+    oname
+-------------
+ Ms.Karthika
+(1 row)
+
+
+postgres=# insert into property values(12,12000,'Bandra','Mumbai','Mr.Kumar');
+INSERT 0 1
+postgres=# insert into property values(13,15600,'Bandra','Mumbai','Ms.Karthika');
+INSERT 0 1
+postgres=# select * from property;
+ pno | area  |   location    |  city  |    oname
+-----+-------+---------------+--------+-------------
+   1 |  2345 | Anand Nagar   | Pune   | Mr.Kumar
+   2 |  2500 | Kalyani Nagar | Pune   | Mr.Kumar
+   3 |  1500 | Suncity       | Pune   | Mr.Kumar
+   4 |  1500 | ST            | Mumbai | Mr.Singh
+   5 |   550 | Dadar         | Nashik | Mr.Singh
+   7 |  2800 | Magarpatta    | Pune   | Mr.Patil
+   8 |  1850 | Darma nagar   | Nashik | Mr.Patil
+   9 |  2345 | Wakad         | Pune   | Ms.Karthika
+  10 |   986 | Bhavdan       | Pune   | Ms.Karthika
+  11 |   886 | Kalyani       | Mumbai | Ms.Karthika
+  12 | 12000 | Bandra        | Mumbai | Mr.Kumar
+  13 | 15600 | Bandra        | Mumbai | Ms.Karthika
+(12 rows)
+
+
+postgres=# select oname from property where city='Mumbai' and location='Bandra' and area>10000;
+    oname
+-------------
+ Mr.Kumar
+ Ms.Karthika
+(2 rows)
+
+postgres=# select distinct owner.oname,phoneno from owner,property where owner.oname=property.oname and 
+owner.oname not in(select owner.oname from owner,property where owner.oname=property.oname and location='Bandra');
+  oname   |  phoneno
+----------+------------
+ Mr.Singh | 9823094855
+ Mr.Patil | 9923323366
+(2 rows)
+
+
+postgres=# create view More_Properties as select oname,count(*) from property group by oname having count(*)>2;
+CREATE VIEW
+postgres=# select * from More_Properties;
+    oname    | count
+-------------+-------
+ Ms.Karthika |     4
+ Mr.Kumar    |     4
+(2 rows)
+
+
+postgres=# create view Owerwise_Properties as select oname,count(*) from property group by oname;
+CREATE VIEW
+postgres=# select * from Owerwise_Properties;
+    oname    | count
+-------------+-------
+ Ms.Karthika |     4
+ Mr.Kumar    |     4
+ Mr.Singh    |     2
+ Mr.Patil    |     2
+(4 rows)

@@ -1,0 +1,298 @@
+postgres=# create table customer9(cno int primary key,cname varchar(20),ccity varchar(20));
+CREATE TABLE
+
+postgres=# create table account(ano int primary key,atype varchar(15) check(atype in('saving','current')),balance numeric(10,2) check(balance > 0),branchname varchar(20),cno int references customer9(cno) on delete cascade on update set null);
+CREATE TABLE
+postgres=# \d customer9;
+                    Table "public.customer9"
+ Column |         Type          | Collation | Nullable | Default
+--------+-----------------------+-----------+----------+---------
+ cno    | integer               |           | not null |
+ cname  | character varying(20) |           |          |
+ ccity  | character varying(20) |           |          |
+Indexes:
+    "customer9_pkey" PRIMARY KEY, btree (cno)
+Referenced by:
+    TABLE "account" CONSTRAINT "account_cno_fkey" FOREIGN KEY (cno) REFERENCES customer9(cno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# \d account;
+                       Table "public.account"
+   Column   |         Type          | Collation | Nullable | Default
+------------+-----------------------+-----------+----------+---------
+ ano        | integer               |           | not null |
+ atype      | character varying(15) |           |          |
+ balance    | numeric(10,2)         |           |          |
+ branchname | character varying(20) |           |          |
+ cno        | integer               |           |          |
+Indexes:
+    "account_pkey" PRIMARY KEY, btree (ano)
+Check constraints:
+    "account_atype_check" CHECK (atype::text = ANY (ARRAY['saving'::character varying, 'current'::character varying]::text[]))
+    "account_balance_check" CHECK (balance > 0::numeric)
+Foreign-key constraints:
+    "account_cno_fkey" FOREIGN KEY (cno) REFERENCES customer9(cno) ON UPDATE SET NULL ON DELETE CASCADE
+
+
+postgres=# insert into customer values(1,'Shardul','Pune');
+INSERT 0 1
+postgres=# insert into customer9 values(1,'Shardul','Pune');
+INSERT 0 1
+postgres=# insert into customer9 values(2,'Shashank','Pune');
+INSERT 0 1
+postgres=# insert into customer9 values(3,'Vani','Delhi');
+INSERT 0 1
+postgres=# insert into customer9 values(4,'Arya','Delhi');
+INSERT 0 1
+postgres=# insert into customer9 values(5,'Prapti','Mumbai');
+INSERT 0 1
+postgres=# select * from customer9;
+ cno |  cname   | ccity
+-----+----------+--------
+   1 | Shardul  | Pune
+   2 | Shashank | Pune
+   3 | Vani     | Delhi
+   4 | Arya     | Delhi
+   5 | Prapti   | Mumbai
+(5 rows)
+
+
+postgres=# insert into account values(10001234,'saving',89765,'mgroad',1);
+INSERT 0 1
+postgres=# insert into account values(20011234,'saving',189765,'deccan',1);
+INSERT 0 1
+postgres=# insert into account values(20345634,'current',1189765,'mgroad',1);
+INSERT 0 1
+postgres=# insert into account values(20345456,'current',589765,'kothrud',2);
+INSERT 0 1
+postgres=# insert into account values(45645449,'saving',56789,'mgroad',2);
+INSERT 0 1
+postgres=# insert into account values(4111449,'saving',156789,'diksuknagar',3);
+INSERT 0 1
+postgres=# insert into account values(7890949,'current',1156789,'kkraoroad',3);
+INSERT 0 1
+postgres=# insert into account values(11223345,'saving',1156789,'hampankatta',4);
+INSERT 0 1
+postgres=# insert into account values(222223345,'current',1056789,'suratkal',4);
+INSERT 0 1
+postgres=# insert into account values(220003345,'current',10569,'basavangudi',5);
+INSERT 0 1
+postgres=# insert into account values(220004534,'saving',1110569,'basavangudi',5);
+INSERT 0 1
+postgres=# select * from account;
+    ano    |  atype  |  balance   | branchname  | cno
+-----------+---------+------------+-------------+-----
+  10001234 | saving  |   89765.00 | mgroad      |   1
+  20011234 | saving  |  189765.00 | deccan      |   1
+  20345634 | current | 1189765.00 | mgroad      |   1
+  20345456 | current |  589765.00 | kothrud     |   2
+  45645449 | saving  |   56789.00 | mgroad      |   2
+   4111449 | saving  |  156789.00 | diksuknagar |   3
+   7890949 | current | 1156789.00 | kkraoroad   |   3
+  11223345 | saving  | 1156789.00 | hampankatta |   4
+ 222223345 | current | 1056789.00 | suratkal    |   4
+ 220003345 | current |   10569.00 | basavangudi |   5
+ 220004534 | saving  | 1110569.00 | basavangudi |   5
+(11 rows)
+
+Display information of all saving accounts having balance > ____
+
+postgres=# select * from account where atype='saving' and balance>50000;
+    ano    | atype  |  balance   | branchname  | cno
+-----------+--------+------------+-------------+-----
+  10001234 | saving |   89765.00 | mgroad      |   1
+  20011234 | saving |  189765.00 | deccan      |   1
+  45645449 | saving |   56789.00 | mgroad      |   2
+   4111449 | saving |  156789.00 | diksuknagar |   3
+  11223345 | saving | 1156789.00 | hampankatta |   4
+ 220004534 | saving | 1110569.00 | basavangudi |   5
+(6 rows)
+
+Count customers in city “___________”.
+
+postgres=# select count(*) as Customers_in_Pune from customer9 where ccity='Pune';
+ customers_in_pune
+-------------------
+                 2
+(1 row)
+
+Find the total balance at branch “M.G.Road”.
+postgres=# select sum(balance) as Total_Balance_at_mgroad from account where branchname='mgroad';
+ total_balance_at_mgroad
+-------------------------
+              1336319.00
+(1 row)
+
+
+postgres=# select * from customer9;
+ cno |  cname   | ccity
+-----+----------+--------
+   1 | Shardul  | Pune
+   2 | Shashank | Pune
+   3 | Vani     | Delhi
+   4 | Arya     | Delhi
+   5 | Prapti   | Mumbai
+(5 rows)
+
+Delete the record whose cust_name is “____________”.
+
+postgres=# delete from customer9 where cname='Prapti';
+DELETE 1
+postgres=# select * from customer9;
+ cno |  cname   | ccity
+-----+----------+-------
+   1 | Shardul  | Pune
+   2 | Shashank | Pune
+   3 | Vani     | Delhi
+   4 | Arya     | Delhi
+(4 rows)
+
+
+postgres=# select * from account;
+    ano    |  atype  |  balance   | branchname  | cno
+-----------+---------+------------+-------------+-----
+  10001234 | saving  |   89765.00 | mgroad      |   1
+  20011234 | saving  |  189765.00 | deccan      |   1
+  20345634 | current | 1189765.00 | mgroad      |   1
+  20345456 | current |  589765.00 | kothrud     |   2
+  45645449 | saving  |   56789.00 | mgroad      |   2
+   4111449 | saving  |  156789.00 | diksuknagar |   3
+   7890949 | current | 1156789.00 | kkraoroad   |   3
+  11223345 | saving  | 1156789.00 | hampankatta |   4
+ 222223345 | current | 1056789.00 | suratkal    |   4
+(9 rows)
+
+Change city of customer “_____” to “Pune”
+
+postgres=# update customer9 set ccity='Pune' where cname='Vani';
+UPDATE 1
+postgres=# select * from customer9;
+ cno |  cname   | ccity | aadharno
+-----+----------+-------+----------
+   1 | Shardul  | Pune  |
+   2 | Shashank | Pune  |
+   4 | Arya     | Delhi |
+   3 | Vani     | Pune  |
+(4 rows)
+
+Find the names of all Customers staying in “Delhi”.
+postgres=# select cname from customer9 where ccity='Delhi';
+ cname
+-------
+ Arya
+(1 row)
+
+Give the total balance of all Saving accounts.
+
+postgres=# select sum(balance) as Total_balance from account where atype='saving';
+ total_balance
+---------------
+    1649897.00
+(1 row)
+
+Find the maximum balance of an account.
+
+postgres=# select max(balance) from account;
+    max
+------------
+ 1189765.00
+(1 row)
+
+Increase the balance of account no 101123 by Rs 10,000/-
+
+postgres=# update account set balance=balance+10000 where ano=11223345;
+UPDATE 1
+postgres=# select * from account;
+    ano    |  atype  |  balance   | branchname  | cno
+-----------+---------+------------+-------------+-----
+  10001234 | saving  |   89765.00 | mgroad      |   1
+  20011234 | saving  |  189765.00 | deccan      |   1
+  20345634 | current | 1189765.00 | mgroad      |   1
+  20345456 | current |  589765.00 | kothrud     |   2
+  45645449 | saving  |   56789.00 | mgroad      |   2
+   4111449 | saving  |  156789.00 | diksuknagar |   3
+   7890949 | current | 1156789.00 | kkraoroad   |   3
+ 222223345 | current | 1056789.00 | suratkal    |   4
+  11223345 | saving  | 1166789.00 | hampankatta |   4
+(9 rows)
+
+Add column “AADHAR number” to customer table.
+
+postgres=# alter table customer9 add aadharno numeric(12);
+ALTER TABLE
+postgres=# \d customer9;
+                     Table "public.customer9"
+  Column  |         Type          | Collation | Nullable | Default
+----------+-----------------------+-----------+----------+---------
+ cno      | integer               |           | not null |
+ cname    | character varying(20) |           |          |
+ ccity    | character varying(20) |           |          |
+ aadharno | numeric(12,0)         |           |          |
+Indexes:
+    "customer9_pkey" PRIMARY KEY, btree (cno)
+Referenced by:
+    TABLE "account" CONSTRAINT "account_cno_fkey" FOREIGN KEY (cno) REFERENCES customer9(cno) ON UPDATE SET NULL ON DELETE CASCADE
+
+Nested Queries
+Write a query to find the names and phone numbers of all Customers of Current accounts, having
+balance greater than 10,00,000/-
+
+postgres=# select cname from customer9,account where customer9.cno=account.cno and atype='current' and balance>1000000;
+  cname
+---------
+ Shardul
+ Vani
+ Arya
+(3 rows)
+
+Write a query to find the number of account holders for each city.
+
+postgres=# select ccity,count(*) from customer9,account where customer9.cno=account.cno group by ccity;
+ ccity | count
+-------+-------
+ Pune  |     7
+ Delhi |     2
+(2 rows)
+
+postgres=# select * from customer9,account where customer9.cno=account.cno;
+ cno |  cname   | ccity | aadharno |    ano    |  atype  |  balance   | branchname  | cno
+-----+----------+-------+----------+-----------+---------+------------+-------------+-----
+   1 | Shardul  | Pune  |          |  10001234 | saving  |   89765.00 | mgroad      |   1
+   1 | Shardul  | Pune  |          |  20011234 | saving  |  189765.00 | deccan      |   1
+   1 | Shardul  | Pune  |          |  20345634 | current | 1189765.00 | mgroad      |   1
+   2 | Shashank | Pune  |          |  20345456 | current |  589765.00 | kothrud     |   2
+   2 | Shashank | Pune  |          |  45645449 | saving  |   56789.00 | mgroad      |   2
+   3 | Vani     | Pune  |          |   4111449 | saving  |  156789.00 | diksuknagar |   3
+   3 | Vani     | Pune  |          |   7890949 | current | 1156789.00 | kkraoroad   |   3
+   4 | Arya     | Delhi |          | 222223345 | current | 1056789.00 | suratkal    |   4
+   4 | Arya     | Delhi |          |  11223345 | saving  | 1166789.00 | hampankatta |   4
+(9 rows)
+
+Create a View to list details of all customers having saving account and not staying in city ____.
+
+postgres=# create view listofcustomer9 as select cname,ccity from customer9,account where customer9.cno=account.cno and atype='saving' and ccity not in('Pune');
+CREATE VIEW
+postgres=# select * from listofcustomer9;
+ cname | ccity
+-------+-------
+ Arya  | Delhi
+(1 row)
+
+
+Create a View to print the account details along with customer and their branch details
+
+postgres=# create view view9 as select ano,atype,balance,branchname,cname,ccity from customer9,account where customer9.cno=account.cno;
+CREATE VIEW
+postgres=# select * from view9;
+    ano    |  atype  |  balance   | branchname  |  cname   | ccity
+-----------+---------+------------+-------------+----------+-------
+  10001234 | saving  |   89765.00 | mgroad      | Shardul  | Pune
+  20011234 | saving  |  189765.00 | deccan      | Shardul  | Pune
+  20345634 | current | 1189765.00 | mgroad      | Shardul  | Pune
+  20345456 | current |  589765.00 | kothrud     | Shashank | Pune
+  45645449 | saving  |   56789.00 | mgroad      | Shashank | Pune
+   4111449 | saving  |  156789.00 | diksuknagar | Vani     | Pune
+   7890949 | current | 1156789.00 | kkraoroad   | Vani     | Pune
+ 222223345 | current | 1056789.00 | suratkal    | Arya     | Delhi
+  11223345 | saving  | 1166789.00 | hampankatta | Arya     | Delhi
+(9 rows)
